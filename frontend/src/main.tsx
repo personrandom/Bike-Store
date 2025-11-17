@@ -1,9 +1,9 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import "./index.css"
 import App from './App.tsx'
-import MainPage from './components/pages/mainpage.tsx';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import MainPage from './components/pages/MainPage.tsx';
 import Customer from './components/pages/Customer.tsx';
 import StoreManage from './components/pages/StoreManage.tsx';
 import Employee from './components/pages/Employee.tsx';
@@ -23,6 +23,6 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <RouterProvider router={router}/>
   </StrictMode>,
 )
