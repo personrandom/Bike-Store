@@ -1,2 +1,2 @@
-# Bike-Store
+# Bike-Store - WIP
 Fullstack project for Databases class
