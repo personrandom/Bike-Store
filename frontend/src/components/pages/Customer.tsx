@@ -25,7 +25,7 @@ export default function Customer() {
                     </Form.Group>
                     <Form.Group className="mt-3">
                         <Form.Label>Search By Brand Name</Form.Label>
-                        <Form.Control/>
+                        <Form.Control placeholder="Trek, Strider, etc."/>
                     </Form.Group>
                     <Form.Group className="mt-3">
                         <Row>
