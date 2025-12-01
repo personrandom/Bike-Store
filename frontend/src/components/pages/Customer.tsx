@@ -25,10 +25,11 @@ export default function Customer() {
     async function showBikes() {
          //call the querry
          console.log(productName)
-         const res = await fetch("http://localhost:3001/products");
+         const res = await fetch("http://localhost:3001/products")
          const data = await res.json();
-         console.log("First 50 bikes:", data);
-         setBikes(data)
+         console.log("First 50 bikes:", data)
+         if(data.length > 0)
+            setBikes(data)
          
     }
 
