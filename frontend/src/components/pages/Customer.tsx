@@ -4,9 +4,13 @@ import { Badge, Col, Container, Form, Row } from "react-bootstrap";
 
 export default function Customer() {
 
-    function showBikes() {
-        //call the querry
-        console.log("HI")
+    async function showBikes() {
+         //call the querry
+         console.log("YO")
+         const res = await fetch("http://localhost:3001/products");
+         const data = await res.json();
+         console.log("First 10 bikes:", data);
+         
     }
     return (
         <Container>
