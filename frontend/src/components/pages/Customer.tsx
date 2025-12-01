@@ -3,6 +3,11 @@ import Button from 'react-bootstrap/Button';
 import { Badge, Col, Container, Form, Row } from "react-bootstrap";
 
 export default function Customer() {
+
+    function showBikes() {
+        //call the querry
+        console.log("HI")
+    }
     return (
         <Container>
             <Row>
@@ -53,7 +58,7 @@ export default function Customer() {
                     <Form.Group className="mt-3">
                         <Row>
                             <Col>
-                                <Button>Search</Button>
+                                <Button onClick={showBikes}>Search</Button>
                             </Col>
                             <Col>
                                 <Button>Clear</Button>
