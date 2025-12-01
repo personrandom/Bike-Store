@@ -30,7 +30,6 @@ app.get("/health", async (_req: Request, res: Response) => {
 });
 
 // ------------------ PRODUCTS (search) ------------------
-// This is the ONLY /products route. It supports filters for Customer page.
 app.get("/products", async (req: Request, res: Response) => {
   const {
     productId,
@@ -40,6 +39,7 @@ app.get("/products", async (req: Request, res: Response) => {
     year,
     minPrice,
     maxPrice,
+    storeName,
   } = req.query as {
     productId?: string;
     productName?: string;
@@ -48,6 +48,7 @@ app.get("/products", async (req: Request, res: Response) => {
     year?: string;
     minPrice?: string;
     maxPrice?: string;
+    storeName?: string;
   };
 
   const productIdNum = productId ? Number(productId) : null;
@@ -56,28 +57,38 @@ app.get("/products", async (req: Request, res: Response) => {
   const maxPriceNum = maxPrice ? Number(maxPrice) : null;
 
   const sql = `
-    SELECT p.*, b.brand_name, c.category_name
+    SELECT 
+      p.*,
+      b.brand_name,
+      c.category_name,
+      st.store_name
     FROM products p
-    LEFT JOIN brands b ON p.brand_id = b.brand_id
+    LEFT JOIN brands b    ON p.brand_id = b.brand_id
     LEFT JOIN categories c ON p.category_id = c.category_id
+    LEFT JOIN stocks s    ON s.product_id = p.product_id
+    LEFT JOIN stores st   ON st.store_id = s.store_id
     WHERE
       (? IS NULL OR p.product_id = ?)
       AND (? IS NULL OR p.product_name LIKE CONCAT('%', ?, '%'))
       AND (? IS NULL OR b.brand_name LIKE CONCAT('%', ?, '%'))
       AND (? IS NULL OR c.category_name LIKE CONCAT('%', ?, '%'))
       AND (? IS NULL OR p.model_year = ?)
-      AND ((? IS NULL AND ? IS NULL)
-           OR p.list_price BETWEEN COALESCE(?, 0) AND COALESCE(?, 999999))
+      AND (? IS NULL OR st.store_name = ?)
+      AND (
+        (? IS NULL AND ? IS NULL)
+        OR p.list_price BETWEEN COALESCE(?, 0) AND COALESCE(?, 999999)
+      )
     LIMIT 100;
   `;
 
   const params = [
     productIdNum, productIdNum,
     productName || null, productName || null,
-    brandName || null, brandName || null,
-    category || null, category || null,
-    yearNum, yearNum,
-    minPriceNum, maxPriceNum, minPriceNum, maxPriceNum,
+    brandName || null,  brandName || null,
+    category || null,   category || null,
+    yearNum,            yearNum,
+    storeName || null,  storeName || null,
+    minPriceNum,        maxPriceNum, minPriceNum, maxPriceNum,
   ];
 
   try {
@@ -88,6 +99,7 @@ app.get("/products", async (req: Request, res: Response) => {
     res.status(500).json({ error: "Database query failed" });
   }
 });
+
 
 // ------------------ CATEGORIES ------------------
 app.get("/categories", async (_req: Request, res: Response) => {

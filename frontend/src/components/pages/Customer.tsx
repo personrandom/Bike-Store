@@ -14,23 +14,23 @@ export default function Customer() {
     // from JOINs in /products route
     brand_name?: string;
     category_name?: string;
+    store_name?: string;
   }
 
   const [productName, setProductName] = useState("");
   const [brandName, setBrandName] = useState("");
   const [category, setCategory] = useState("");
   const [year, setYear] = useState("");
-  const [company, setCompany] = useState("Any"); // not used yet, but kept in state
+  const [store, setStore] = useState("Any");
   const [bikes, setBikes] = useState<Product[]>([]);
 
   async function showBikes() {
-    // build query string from filters
     const params = new URLSearchParams();
     if (productName.trim()) params.append("productName", productName.trim());
     if (brandName.trim()) params.append("brandName", brandName.trim());
     if (category.trim()) params.append("category", category.trim());
     if (year.trim()) params.append("year", year.trim());
-    // company filter could be added later if you support it in backend
+    if (store !== "Any") params.append("storeName", store);
 
     const query = params.toString();
     const url = `http://localhost:3001/products${query ? `?${query}` : ""}`;
@@ -40,7 +40,7 @@ export default function Customer() {
       brandName,
       category,
       year,
-      company,
+      store,
     });
 
     const res = await fetch(url);
@@ -55,7 +55,7 @@ export default function Customer() {
     setBrandName("");
     setCategory("");
     setYear("");
-    setCompany("Any");
+    setStore("Any");
     setBikes([]);
   }
 
@@ -114,7 +114,6 @@ export default function Customer() {
               </Col>
               <Col>
                 <Form.Label>Search By Year</Form.Label>
-                {/* better: just the year, since model_year is like 2018 */}
                 <Form.Control
                   placeholder="2018"
                   value={year}
@@ -125,11 +124,11 @@ export default function Customer() {
           </Form.Group>
 
           <Form.Group className="mt-3">
-            <Form.Label>Search By Company</Form.Label>
-            {/* wired up but not used in backend yet */}
+            <Form.Label>Search By Store</Form.Label>
+            {/* These labels must match your stores.store_name values */}
             <Form.Select
-              value={company}
-              onChange={(e) => setCompany(e.target.value)}
+              value={store}
+              onChange={(e) => setStore(e.target.value)}
             >
               <option>Any</option>
               <option>Santa Cruz Bikes</option>
@@ -163,6 +162,7 @@ export default function Customer() {
               <th>Category</th>
               <th>Year</th>
               <th>Price</th>
+              {/* <th>Store</th>  // you can show this if you want */}
             </tr>
           </thead>
           <tbody>
@@ -174,6 +174,7 @@ export default function Customer() {
                 <td>{bike.category_name ?? bike.category_id}</td>
                 <td>{bike.model_year}</td>
                 <td>${bike.list_price}</td>
+                {/* <td>{bike.store_name}</td> */}
               </tr>
             ))}
           </tbody>
