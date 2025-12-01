@@ -255,4 +255,43 @@ app.listen(port, () => {
   console.log(`API running on port ${port}`);
 });
 
+app.get("/products", async (req, res) => {
+  const {
+    productId,
+    productName,
+    brandName,
+    category,
+    year,
+    minPrice,
+    maxPrice
+  } = req.query;
+
+  const sql = `
+    SELECT p.*, b.brand_name, c.category_name
+    FROM products p
+    LEFT JOIN brands b ON p.brand_id = b.brand_id
+    LEFT JOIN categories c ON p.category_id = c.category_id
+    WHERE (p.product_name = ? OR ? IS NULL)
+      AND (b.brand_name = ? OR ? IS NULL)
+      AND (c.category_name = ? OR ? IS NULL)
+      AND (p.model_year = ? OR ? IS NULL)
+      AND (p.list_price BETWEEN 0 AND 999999)
+  `;
+
+  const params = [
+    productName || null, productName || null,
+    brandName || null, brandName || null,
+    category || null, category || null,
+    year || null, year || null
+  ];
+
+  try {
+    const [rows] = await db.execute(sql, params);
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database query failed" });
+  }
+});
+
 
