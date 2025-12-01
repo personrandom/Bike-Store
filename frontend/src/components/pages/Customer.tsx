@@ -19,6 +19,7 @@ export default function Customer() {
          console.log("First 10 bikes:", data);
          
     }
+
     return (
         <Container>
             <Row>
