@@ -8,7 +8,7 @@ export default function StoreManage() {
         //call the querry
         console.log("Show Categories")
 
-        const res = await fetch("http://localhost:3001/products");
+        const res = await fetch("http://localhost:3001/categories");
         const data = await res.json();
         console.log("Categories:", data);
    }
@@ -17,7 +17,7 @@ export default function StoreManage() {
     //call the querry
     console.log("Show Orders")
 
-    const res = await fetch("http://localhost:3001/products");
+    const res = await fetch("http://localhost:3001/orders");
     const data = await res.json();
     console.log("Orders:", data);
     }
@@ -26,7 +26,7 @@ export default function StoreManage() {
         //call the querry
         console.log("Show Brands")
     
-        const res = await fetch("http://localhost:3001/products");
+        const res = await fetch("http://localhost:3001/brands");
         const data = await res.json();
         console.log("Brands:", data);
     }
@@ -35,7 +35,7 @@ export default function StoreManage() {
         //call the querry
         console.log("Show Stores")
     
-        const res = await fetch("http://localhost:3001/products");
+        const res = await fetch("http://localhost:3001/stores");
         const data = await res.json();
         console.log("Stores:", data);
     }
@@ -44,11 +44,20 @@ export default function StoreManage() {
         //call the querry
         console.log("Show Staff")
     
-        const res = await fetch("http://localhost:3001/products");
+        const res = await fetch("http://localhost:3001/staffs");
         const data = await res.json();
         console.log("Staff:", data);
     }
 
+    async function showBestCustomers() {
+        //call the querry
+        console.log("Show Best Customer")
+    
+        const res = await fetch("http://localhost:3001/analytics/top-customers");
+        const data = await res.json();
+        console.log("Best Customers:", data);
+    }
+    
 
 
     return (
@@ -64,6 +73,7 @@ export default function StoreManage() {
             <Button onClick={showBrands}>Show Brands</Button>
             <Button onClick={showStores}>Show Stores</Button>
             <Button onClick={showStaff}>Show Staff</Button>
+            <Button onClick={showBestCustomers}>Show Best Customers</Button>
 
         </Container>
     )
