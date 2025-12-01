@@ -18,7 +18,7 @@ const db = mysql.createPool({
   port: Number(process.env.DB_PORT) || 3306,
 });
 
-// health check route
+// ------------------ Health check ------------------
 app.get("/health", async (_req: Request, res: Response) => {
   try {
     await db.query("SELECT 1");
@@ -29,21 +29,84 @@ app.get("/health", async (_req: Request, res: Response) => {
   }
 });
 
-// products route
-app.get("/products", async (_req: Request, res: Response) => {
+// ------------------ PRODUCTS (search) ------------------
+app.get("/products", async (req: Request, res: Response) => {
+  const {
+    productId,
+    productName,
+    brandName,
+    category,
+    year,
+    minPrice,
+    maxPrice,
+    storeName,
+  } = req.query as {
+    productId?: string;
+    productName?: string;
+    brandName?: string;
+    category?: string;
+    year?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    storeName?: string;
+  };
+
+  const productIdNum = productId ? Number(productId) : null;
+  const yearNum = year ? Number(year) : null;
+  const minPriceNum = minPrice ? Number(minPrice) : null;
+  const maxPriceNum = maxPrice ? Number(maxPrice) : null;
+
+  const sql = `
+    SELECT 
+      p.*,
+      b.brand_name,
+      c.category_name,
+      st.store_name
+    FROM products p
+    LEFT JOIN brands b    ON p.brand_id = b.brand_id
+    LEFT JOIN categories c ON p.category_id = c.category_id
+    LEFT JOIN stocks s    ON s.product_id = p.product_id
+    LEFT JOIN stores st   ON st.store_id = s.store_id
+    WHERE
+      (? IS NULL OR p.product_id = ?)
+      AND (? IS NULL OR p.product_name LIKE CONCAT('%', ?, '%'))
+      AND (? IS NULL OR b.brand_name LIKE CONCAT('%', ?, '%'))
+      AND (? IS NULL OR c.category_name LIKE CONCAT('%', ?, '%'))
+      AND (? IS NULL OR p.model_year = ?)
+      AND (? IS NULL OR st.store_name = ?)
+      AND (
+        (? IS NULL AND ? IS NULL)
+        OR p.list_price BETWEEN COALESCE(?, 0) AND COALESCE(?, 999999)
+      )
+    LIMIT 100;
+  `;
+
+  const params = [
+    productIdNum, productIdNum,
+    productName || null, productName || null,
+    brandName || null,  brandName || null,
+    category || null,   category || null,
+    yearNum,            yearNum,
+    storeName || null,  storeName || null,
+    minPriceNum,        maxPriceNum, minPriceNum, maxPriceNum,
+  ];
+
   try {
-    const [rows] = await db.query("SELECT * FROM products LIMIT 50");
+    const [rows] = await db.query(sql, params);
     res.json(rows);
   } catch (err) {
-    console.error("Error fetching products:", err);
-    res.status(500).json({ error: "db error" });
+    console.error("Error searching products:", err);
+    res.status(500).json({ error: "Database query failed" });
   }
 });
 
-// get all categories
+
+// ------------------ CATEGORIES ------------------
 app.get("/categories", async (_req: Request, res: Response) => {
   try {
-    const [rows] = await db.query("SELECT * FROM categories ORDER BY category_name");
+    const [rows] = await db.query(
+      "SELECT * FROM categories ORDER BY category_name"
+    );
     res.json(rows);
   } catch (err) {
     console.error(err);
@@ -51,10 +114,12 @@ app.get("/categories", async (_req: Request, res: Response) => {
   }
 });
 
-// get all brands
-app.get("/brands", async (_req, res) => {
+// ------------------ BRANDS ------------------
+app.get("/brands", async (_req: Request, res: Response) => {
   try {
-    const [rows] = await db.query("SELECT * FROM brands ORDER BY brand_name");
+    const [rows] = await db.query(
+      "SELECT * FROM brands ORDER BY brand_name"
+    );
     res.json(rows);
   } catch (err) {
     console.error(err);
@@ -62,10 +127,12 @@ app.get("/brands", async (_req, res) => {
   }
 });
 
-// get all stores
-app.get("/stores", async (_req, res) => {
+// ------------------ STORES ------------------
+app.get("/stores", async (_req: Request, res: Response) => {
   try {
-    const [rows] = await db.query("SELECT * FROM stores ORDER BY store_name");
+    const [rows] = await db.query(
+      "SELECT * FROM stores ORDER BY store_name"
+    );
     res.json(rows);
   } catch (err) {
     console.error(err);
@@ -73,8 +140,8 @@ app.get("/stores", async (_req, res) => {
   }
 });
 
-// get all staff members
-app.get("/staffs", async (_req, res) => {
+// ------------------ STAFFS ------------------
+app.get("/staffs", async (_req: Request, res: Response) => {
   try {
     const [rows] = await db.query(`
       SELECT 
@@ -96,8 +163,8 @@ app.get("/staffs", async (_req, res) => {
   }
 });
 
-// get all orders
-app.get("/orders", async (_req, res) => {
+// ------------------ ORDERS (basic list) ------------------
+app.get("/orders", async (_req: Request, res: Response) => {
   try {
     const [rows] = await db.query(`
       SELECT 
@@ -118,8 +185,8 @@ app.get("/orders", async (_req, res) => {
   }
 });
 
-// get all info , use this for demo
-app.get("/orders/:orderId/details", async (req, res) => {
+// ------------------ ORDER DETAILS ------------------
+app.get("/orders/:orderId/details", async (req: Request, res: Response) => {
   try {
     const [rows] = await db.query(
       `
@@ -150,8 +217,8 @@ app.get("/orders/:orderId/details", async (req, res) => {
   }
 });
 
-// get items for specific order
-app.get("/orders/:orderId/items", async (req, res) => {
+// ------------------ ORDER ITEMS ------------------
+app.get("/orders/:orderId/items", async (req: Request, res: Response) => {
   try {
     const [rows] = await db.query(
       `
@@ -177,8 +244,8 @@ app.get("/orders/:orderId/items", async (req, res) => {
   }
 });
 
-// get items in specific category
-app.get("/categories/:categoryId/products", async (req, res) => {
+// ------------------ PRODUCTS BY CATEGORY ------------------
+app.get("/categories/:categoryId/products", async (req: Request, res: Response) => {
   try {
     const [rows] = await db.query(
       `
@@ -197,9 +264,8 @@ app.get("/categories/:categoryId/products", async (req, res) => {
   }
 });
 
-
-// get inventory from store
-app.get("/stores/:storeId/inventory", async (req, res) => {
+// ------------------ STORE INVENTORY ------------------
+app.get("/stores/:storeId/inventory", async (req: Request, res: Response) => {
   try {
     const [rows] = await db.query(
       `
@@ -226,8 +292,8 @@ app.get("/stores/:storeId/inventory", async (req, res) => {
   }
 });
 
-// get top 10 customers by spending
-app.get("/analytics/top-customers", async (_req, res) => {
+// ------------------ TOP CUSTOMERS ------------------
+app.get("/analytics/top-customers", async (_req: Request, res: Response) => {
   try {
     const [rows] = await db.query(`
       SELECT 
@@ -249,12 +315,10 @@ app.get("/analytics/top-customers", async (_req, res) => {
   }
 });
 
-
-// search orders with optional filters for Employee page
+// ------------------ ORDER SEARCH (Employee page) ------------------
 app.get("/orders/search", async (req: Request, res: Response) => {
   const { date, customerName, staffId, status } = req.query;
 
-  // for logging / debugging
   console.log("Order search filters:", { date, customerName, staffId, status });
 
   const sql = `
@@ -272,23 +336,19 @@ app.get("/orders/search", async (req: Request, res: Response) => {
     JOIN customers c ON c.customer_id = o.customer_id
     JOIN stores st   ON st.store_id = o.store_id
     WHERE
-      ( ? IS NULL OR DATE(o.order_date) = ? )
-      AND ( ? IS NULL OR CONCAT(c.first_name, ' ', c.last_name) LIKE CONCAT('%', ?, '%') )
-      AND ( ? IS NULL OR o.staff_id = ? )
-      AND ( ? IS NULL OR o.order_status = ? )
+      (? IS NULL OR DATE(o.order_date) = ?)
+      AND (? IS NULL OR CONCAT(c.first_name, ' ', c.last_name) LIKE CONCAT('%', ?, '%'))
+      AND (? IS NULL OR o.staff_id = ?)
+      AND (? IS NULL OR o.order_status = ?)
     ORDER BY o.order_date DESC
     LIMIT 100;
   `;
 
   const params = [
-    date || null,
-    date || null,
-    customerName || null,
-    customerName || null,
-    staffId || null,
-    staffId || null,
-    status || null,
-    status || null,
+    date || null, date || null,
+    customerName || null, customerName || null,
+    staffId || null, staffId || null,
+    status || null, status || null,
   ];
 
   try {
@@ -300,50 +360,8 @@ app.get("/orders/search", async (req: Request, res: Response) => {
   }
 });
 
-
-
+// ------------------ START SERVER ------------------
 const port = Number(process.env.PORT) || 3001;
 app.listen(port, () => {
   console.log(`API running on port ${port}`);
 });
-
-app.get("/products", async (req, res) => {
-  const {
-    productId,
-    productName,
-    brandName,
-    category,
-    year,
-    minPrice,
-    maxPrice
-  } = req.query;
-
-  const sql = `
-    SELECT p.*, b.brand_name, c.category_name
-    FROM products p
-    LEFT JOIN brands b ON p.brand_id = b.brand_id
-    LEFT JOIN categories c ON p.category_id = c.category_id
-    WHERE (p.product_name = ? OR ? IS NULL)
-      AND (b.brand_name = ? OR ? IS NULL)
-      AND (c.category_name = ? OR ? IS NULL)
-      AND (p.model_year = ? OR ? IS NULL)
-      AND (p.list_price BETWEEN 0 AND 999999)
-  `;
-
-  const params = [
-    productName || null, productName || null,
-    brandName || null, brandName || null,
-    category || null, category || null,
-    year || null, year || null
-  ];
-
-  try {
-    const [rows] = await db.execute(sql, params);
-    res.json(rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Database query failed" });
-  }
-});
-
-
