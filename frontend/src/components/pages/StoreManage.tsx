@@ -3,6 +3,17 @@ import Button from "react-bootstrap/Button";
 import { Container, Form } from "react-bootstrap";
 import { useState } from "react";
 
+// NEW: imports from Recharts
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ResponsiveContainer,
+} from "recharts";
+
 export default function StoreManage() {
   const [orderId, setOrderId] = useState("");
 
@@ -10,6 +21,9 @@ export default function StoreManage() {
   const [tableTitle, setTableTitle] = useState<string>("");
   const [tableData, setTableData] = useState<any[]>([]);
   const [tableColumns, setTableColumns] = useState<string[]>([]);
+
+  // For the graph specifically
+  const [bestCustomers, setBestCustomers] = useState<any[]>([]);
 
   // Helper to update table from any fetch
   function updateTable(title: string, data: any[]) {
@@ -24,6 +38,7 @@ export default function StoreManage() {
     const res = await fetch("http://localhost:3001/categories");
     const data = await res.json();
     updateTable("Categories", data);
+    setBestCustomers([]); // clear graph
   }
 
   async function showOrders() {
@@ -31,6 +46,7 @@ export default function StoreManage() {
     const res = await fetch("http://localhost:3001/orders");
     const data = await res.json();
     updateTable("Orders", data);
+    setBestCustomers([]); // clear graph
   }
 
   async function showBrands() {
@@ -38,6 +54,7 @@ export default function StoreManage() {
     const res = await fetch("http://localhost:3001/brands");
     const data = await res.json();
     updateTable("Brands", data);
+    setBestCustomers([]); // clear graph
   }
 
   async function showStores() {
@@ -45,6 +62,7 @@ export default function StoreManage() {
     const res = await fetch("http://localhost:3001/stores");
     const data = await res.json();
     updateTable("Stores", data);
+    setBestCustomers([]); // clear graph
   }
 
   async function showStaff() {
@@ -52,13 +70,22 @@ export default function StoreManage() {
     const res = await fetch("http://localhost:3001/staffs");
     const data = await res.json();
     updateTable("Staff", data);
+    setBestCustomers([]); // clear graph
   }
 
   async function showBestCustomers() {
     console.log("Show Best Customers");
     const res = await fetch("http://localhost:3001/analytics/top-customers");
     const data = await res.json();
-    updateTable("Best Customers", data);
+
+    // Add a "name" field for the chart (First Last)
+    const mapped = data.map((c: any) => ({
+      ...c,
+      name: `${c.first_name} ${c.last_name}`,
+    }));
+
+    updateTable("Best Customers", mapped);
+    setBestCustomers(mapped);
   }
 
   async function showOrderDetails(orderId: string) {
@@ -75,6 +102,7 @@ export default function StoreManage() {
     const data = await res.json();
 
     updateTable(`Order ${orderId} Details`, data);
+    setBestCustomers([]); // clear graph
   }
 
   return (
@@ -136,6 +164,29 @@ export default function StoreManage() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Best Customers bar chart */}
+      {bestCustomers.length > 0 && (
+        <div className="mt-4">
+          <h5 className="text-center">Top Customers by Total Spent</h5>
+          <div style={{ width: "100%", height: 300 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={bestCustomers} margin={{ top: 20, right: 30, left: 0, bottom: 50 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="name"
+                  angle={-30}
+                  textAnchor="end"
+                  interval={0}
+                />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="total_spent" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
     </Container>
