@@ -41,6 +41,9 @@ export default function Customer() {
          const res = await fetch(url)
          const data = await res.json();
          
+         if(data.length > 0)
+            setBikes(data)
+         
     }
 
     return (
