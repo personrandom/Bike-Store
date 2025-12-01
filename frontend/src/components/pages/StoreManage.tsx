@@ -10,7 +10,7 @@ export default function StoreManage() {
 
         const res = await fetch("http://localhost:3001/products");
         const data = await res.json();
-        console.log("First 10 bikes:", data);
+        console.log("Categories:", data);
    }
 
    async function showOrders() {
@@ -19,7 +19,7 @@ export default function StoreManage() {
 
     const res = await fetch("http://localhost:3001/products");
     const data = await res.json();
-    console.log("First 10 bikes:", data);
+    console.log("Orders:", data);
     }
 
     async function showBrands() {
@@ -28,7 +28,7 @@ export default function StoreManage() {
     
         const res = await fetch("http://localhost:3001/products");
         const data = await res.json();
-        console.log("First 10 bikes:", data);
+        console.log("Brands:", data);
     }
 
     async function showStores() {
@@ -37,7 +37,7 @@ export default function StoreManage() {
     
         const res = await fetch("http://localhost:3001/products");
         const data = await res.json();
-        console.log("First 10 bikes:", data);
+        console.log("Stores:", data);
     }
 
     async function showStaff() {
@@ -46,7 +46,7 @@ export default function StoreManage() {
     
         const res = await fetch("http://localhost:3001/products");
         const data = await res.json();
-        console.log("First 10 bikes:", data);
+        console.log("Staff:", data);
     }
 
 
