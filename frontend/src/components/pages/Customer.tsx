@@ -25,11 +25,21 @@ export default function Customer() {
     async function showBikes() {
          //call the querry
          console.log(productName)
-         const res = await fetch("http://localhost:3001/products")
+
+         const params = new URLSearchParams();
+         if (productName) params.append("productName", productName);
+         if (brandName) params.append("brandName", brandName);
+         if (category) params.append("category", category);
+         if (year) params.append("year", year.toString());
+         if (company) params.append("company", company);
+
+
+
+        const query = params.toString();
+        const url = `http://localhost:3001/productsFilter${query ? `?${query}` : ""}`;
+
+         const res = await fetch(url)
          const data = await res.json();
-         console.log("First 50 bikes:", data)
-         if(data.length > 0)
-            setBikes(data)
          
     }
 
