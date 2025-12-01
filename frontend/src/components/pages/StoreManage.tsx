@@ -1,82 +1,143 @@
 import { Link } from "react-router-dom";
-import Button from 'react-bootstrap/Button';
-import { Container } from "react-bootstrap";
+import Button from "react-bootstrap/Button";
+import { Container, Form } from "react-bootstrap";
+import { useState } from "react";
 
 export default function StoreManage() {
+  const [orderId, setOrderId] = useState("");
 
-    async function showCats() {
-        //call the querry
-        console.log("Show Categories")
+  // Generic table state (works for categories, orders, brands, etc.)
+  const [tableTitle, setTableTitle] = useState<string>("");
+  const [tableData, setTableData] = useState<any[]>([]);
+  const [tableColumns, setTableColumns] = useState<string[]>([]);
 
-        const res = await fetch("http://localhost:3001/categories");
-        const data = await res.json();
-        console.log("Categories:", data);
-   }
+  // Helper to update table from any fetch
+  function updateTable(title: string, data: any[]) {
+    console.log(`${title}:`, data);
+    setTableTitle(title);
+    setTableData(data);
+    setTableColumns(data.length > 0 ? Object.keys(data[0]) : []);
+  }
 
-   async function showOrders() {
-    //call the querry
-    console.log("Show Orders")
+  async function showCats() {
+    console.log("Show Categories");
+    const res = await fetch("http://localhost:3001/categories");
+    const data = await res.json();
+    updateTable("Categories", data);
+  }
 
+  async function showOrders() {
+    console.log("Show Orders");
     const res = await fetch("http://localhost:3001/orders");
     const data = await res.json();
-    console.log("Orders:", data);
+    updateTable("Orders", data);
+  }
+
+  async function showBrands() {
+    console.log("Show Brands");
+    const res = await fetch("http://localhost:3001/brands");
+    const data = await res.json();
+    updateTable("Brands", data);
+  }
+
+  async function showStores() {
+    console.log("Show Stores");
+    const res = await fetch("http://localhost:3001/stores");
+    const data = await res.json();
+    updateTable("Stores", data);
+  }
+
+  async function showStaff() {
+    console.log("Show Staff");
+    const res = await fetch("http://localhost:3001/staffs");
+    const data = await res.json();
+    updateTable("Staff", data);
+  }
+
+  async function showBestCustomers() {
+    console.log("Show Best Customers");
+    const res = await fetch("http://localhost:3001/analytics/top-customers");
+    const data = await res.json();
+    updateTable("Best Customers", data);
+  }
+
+  async function showOrderDetails(orderId: string) {
+    console.log("Fetching order:", orderId);
+
+    if (!orderId) {
+      console.error("No orderId entered!");
+      return;
     }
 
-    async function showBrands() {
-        //call the querry
-        console.log("Show Brands")
-    
-        const res = await fetch("http://localhost:3001/brands");
-        const data = await res.json();
-        console.log("Brands:", data);
-    }
+    const res = await fetch(
+      `http://localhost:3001/orders/${orderId}/details`
+    );
+    const data = await res.json();
 
-    async function showStores() {
-        //call the querry
-        console.log("Show Stores")
-    
-        const res = await fetch("http://localhost:3001/stores");
-        const data = await res.json();
-        console.log("Stores:", data);
-    }
+    updateTable(`Order ${orderId} Details`, data);
+  }
 
-    async function showStaff() {
-        //call the querry
-        console.log("Show Staff")
-    
-        const res = await fetch("http://localhost:3001/staffs");
-        const data = await res.json();
-        console.log("Staff:", data);
-    }
+  return (
+    <Container>
+      <Link to={"/"}>
+        <Button className="m-5">Go Home</Button>
+      </Link>
 
-    async function showBestCustomers() {
-        //call the querry
-        console.log("Show Best Customer")
-    
-        const res = await fetch("http://localhost:3001/analytics/top-customers");
-        const data = await res.json();
-        console.log("Best Customers:", data);
-    }
-    
+      <div className="text-center">
+        Hello Big Boss!!!
+        <br />
+        Display all orders placed by customers to track sales performance below
+      </div>
 
+      {/* Buttons to load data */}
+      <div className="mt-4 d-flex flex-wrap gap-2">
+        <Button onClick={showCats}>Show Categories</Button>
+        <Button onClick={showOrders}>Show Orders</Button>
+        <Button onClick={showBrands}>Show Brands</Button>
+        <Button onClick={showStores}>Show Stores</Button>
+        <Button onClick={showStaff}>Show Staff</Button>
+        <Button onClick={showBestCustomers}>Show Best Customers</Button>
+      </div>
 
-    return (
-        <Container>
-            <Link to={"/"}><Button className="m-5">Go Home</Button></Link>
-            <div className="text-center">
-                Hello Big Boss!!!
-                Display all orders placed by customers to track sales performance below
-            </div>
+      {/* Order ID input + button */}
+      <div className="mt-4">
+        <Form.Label>Enter Order ID:</Form.Label>
+        <Form.Control
+          type="number"
+          placeholder="e.g. 5"
+          value={orderId}
+          onChange={(e) => setOrderId(e.target.value)}
+          style={{ width: "200px" }}
+        />
+        <Button className="mt-2" onClick={() => showOrderDetails(orderId)}>
+          Show Order From ID
+        </Button>
+      </div>
 
-            <Button onClick={showCats}>Show Categories</Button>
-            <Button onClick={showOrders}>Show Orders</Button>
-            <Button onClick={showBrands}>Show Brands</Button>
-            <Button onClick={showStores}>Show Stores</Button>
-            <Button onClick={showStaff}>Show Staff</Button>
-            <Button onClick={showBestCustomers}>Show Best Customers</Button>
-
-        </Container>
-    )
-
-    
+      {/* Shared table display */}
+      {tableData.length > 0 && (
+        <div className="mt-4">
+          <h4 className="mb-3 text-center">{tableTitle}</h4>
+          <table className="table table-striped table-bordered">
+            <thead>
+              <tr>
+                {tableColumns.map((col) => (
+                  <th key={col}>{col}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {tableData.map((row, idx) => (
+                <tr key={idx}>
+                  {tableColumns.map((col) => (
+                    <td key={col}>{String(row[col])}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </Container>
+  );
 }

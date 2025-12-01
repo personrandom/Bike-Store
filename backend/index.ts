@@ -250,6 +250,58 @@ app.get("/analytics/top-customers", async (_req, res) => {
 });
 
 
+// search orders with optional filters for Employee page
+app.get("/orders/search", async (req: Request, res: Response) => {
+  const { date, customerName, staffId, status } = req.query;
+
+  // for logging / debugging
+  console.log("Order search filters:", { date, customerName, staffId, status });
+
+  const sql = `
+    SELECT
+      o.order_id,
+      o.order_status,
+      o.order_date,
+      o.required_date,
+      o.shipped_date,
+      o.staff_id,
+      c.first_name  AS customer_first_name,
+      c.last_name   AS customer_last_name,
+      st.store_name
+    FROM orders o
+    JOIN customers c ON c.customer_id = o.customer_id
+    JOIN stores st   ON st.store_id = o.store_id
+    WHERE
+      ( ? IS NULL OR DATE(o.order_date) = ? )
+      AND ( ? IS NULL OR CONCAT(c.first_name, ' ', c.last_name) LIKE CONCAT('%', ?, '%') )
+      AND ( ? IS NULL OR o.staff_id = ? )
+      AND ( ? IS NULL OR o.order_status = ? )
+    ORDER BY o.order_date DESC
+    LIMIT 100;
+  `;
+
+  const params = [
+    date || null,
+    date || null,
+    customerName || null,
+    customerName || null,
+    staffId || null,
+    staffId || null,
+    status || null,
+    status || null,
+  ];
+
+  try {
+    const [rows] = await db.query(sql, params);
+    res.json(rows);
+  } catch (err) {
+    console.error("Error searching orders:", err);
+    res.status(500).json({ error: "db error" });
+  }
+});
+
+
+
 const port = Number(process.env.PORT) || 3001;
 app.listen(port, () => {
   console.log(`API running on port ${port}`);
