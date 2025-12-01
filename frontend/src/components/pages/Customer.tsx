@@ -1,12 +1,19 @@
 import { Link } from "react-router-dom";
 import Button from 'react-bootstrap/Button';
 import { Badge, Col, Container, Form, Row } from "react-bootstrap";
+import { useState } from "react";
 
 export default function Customer() {
 
+    const [productName, setProductName] = useState("")
+    const [brandName, setBrandName] = useState("")
+    const [category, setCategory] = useState("")
+    const [year, setYear] = useState("")
+    const [company, setCompany] = useState("Any")
+
     async function showBikes() {
          //call the querry
-         console.log("YO")
+         console.log(productName)
          const res = await fetch("http://localhost:3001/products");
          const data = await res.json();
          console.log("First 10 bikes:", data);
@@ -30,22 +37,22 @@ export default function Customer() {
                 <Form className="m-3">
                     <Form.Group className="mt-3">
                         <Form.Label>Search By Product Name</Form.Label>
-                        <Form.Control placeholder="Haro Shift R3"/>
+                        <Form.Control placeholder="Haro Shift R3" onChange={e => setProductName(e.target.value)}/>
                     </Form.Group>
                     <Form.Group className="mt-3">
                         <Form.Label>Search By Brand Name</Form.Label>
-                        <Form.Control placeholder="Trek, Strider, etc."/>
+                        <Form.Control placeholder="Trek, Strider, etc." onChange={e => setBrandName(e.target.value)}/>
                     </Form.Group>
                     <Form.Group className="mt-3">
                         <Row>
                             <Col>
                                 <Form.Label>Search By Category</Form.Label>
-                                <Form.Control placeholder="Mountain Bikes"/>
+                                <Form.Control placeholder="Mountain Bikes" onChange={e => setCategory(e.target.value)}/>
                             </Col>
                             <Col>
                                 <Form.Label>Search By Year</Form.Label>
                                 {/* Include some checking to ensure format */}
-                                <Form.Control placeholder="dd/mm/yyyy"/>
+                                <Form.Control placeholder="dd/mm/yyyy" onChange={e => setYear(e.target.value)}/>
                             </Col>
                         </Row>
                     </Form.Group>
