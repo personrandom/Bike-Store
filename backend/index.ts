@@ -199,6 +199,14 @@ app.get("/orders", async (_req: Request, res: Response) => {
 // ------------------ ORDER DETAILS ------------------
 app.get("/orders/:orderId/details", async (req: Request, res: Response) => {
  try {
+
+  // new query
+  const [rows] = await db.query(
+    `SELECT * FROM vw_order_details WHERE order_id = ?`,
+    [req.params.orderId]
+  );
+  
+  /* old query to test difference
    const [rows] = await db.query(
      `
      SELECT
@@ -219,7 +227,7 @@ app.get("/orders/:orderId/details", async (req: Request, res: Response) => {
      WHERE o.order_id = ?
      `,
      [req.params.orderId]
-   );
+   );*/
 
 
    res.json(rows);
