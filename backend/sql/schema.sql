@@ -117,3 +117,14 @@ CREATE TABLE stocks (
   CONSTRAINT fk_stock_product
     FOREIGN KEY (product_id) REFERENCES products(product_id)
 );
+
+CREATE VIEW vw_customer_order_summary AS
+SELECT
+  c.customer_id,
+  c.first_name,
+  c.last_name,
+  ROUND(SUM(oi.quantity * oi.list_price * (1 - oi.discount)), 2) AS total_spent
+FROM customers c
+JOIN orders o ON o.customer_id = c.customer_id
+JOIN order_items oi ON oi.order_id = o.order_id
+GROUP BY c.customer_id, c.first_name, c.last_name;

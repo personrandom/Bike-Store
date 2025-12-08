@@ -313,26 +313,23 @@ app.get("/stores/:storeId/inventory", async (req: Request, res: Response) => {
 
 // ------------------ TOP CUSTOMERS ------------------
 app.get("/analytics/top-customers", async (_req: Request, res: Response) => {
- try {
-   const [rows] = await db.query(`
-     SELECT
-       c.customer_id,
-       c.first_name,
-       c.last_name,
-       SUM(oi.quantity * oi.list_price * (1 - oi.discount)) AS total_spent
-     FROM customers c
-     JOIN orders o ON o.customer_id = c.customer_id
-     JOIN order_items oi ON oi.order_id = o.order_id
-     GROUP BY c.customer_id
-     ORDER BY total_spent DESC
-     LIMIT 10;
-   `);
-   res.json(rows);
- } catch (err) {
-   console.error(err);
-   res.status(500).json({ error: "db error" });
- }
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+        customer_id, 
+        CONCAT(first_name, ' ', last_name) AS name, 
+        total_spent
+      FROM vw_customer_order_summary
+      ORDER BY total_spent DESC
+      LIMIT 10;
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching top customers:", err);
+    res.status(500).json({ error: "db error" });
+  }
 });
+
 
 
 // ------------------ ORDER SEARCH (Employee page) ------------------
